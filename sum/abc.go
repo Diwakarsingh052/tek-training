@@ -1,0 +1,5 @@
+package sum
+
+func something() {
+
+}
