@@ -1,0 +1,342 @@
+Arrays—Too Rigid to Use Directly
+Like most programming languages, Go has arrays. However, arrays are rarely used directly in Go. You’ll learn why in a bit, but first let’s quickly cover array declaration syntax and use.
+
+All of the elements in the array must be of the type that’s specified. There are a few different declaration styles. In the first, you specify the size of the array and the type of the elements in the array:
+
+var x [3]int
+This creates an array of three ints. Since no values were specified, all of the elements (x[0], x[1], and x[2]) are initialized to the zero value for an int, which is (of course) 0. If you have initial values for the array, you specify them with an array literal:
+
+var x = [3]int{10, 20, 30}
+If you have a sparse array (an array where most elements are set to their zero value), you can specify only the indices with values in the array literal:
+
+var x = [12]int{1, 5: 4, 6, 10: 100, 15}
+This creates an array of 12 ints with the following values: [1, 0, 0, 0, 0, 4, 6, 0, 0, 0, 100, 15].
+
+When using an array literal to initialize an array, you can replace the number that specifies the number of elements in the array with ...:
+
+var x = [...]int{10, 20, 30}
+You can use == and != to compare two arrays. Arrays are equal if they are the same length and contain equal values:
+
+var x = [...]int{1, 2, 3}
+var y = [3]int{1, 2, 3}
+fmt.Println(x == y) // prints true
+Go only has one-dimensional arrays, but you can simulate multidimensional arrays:
+
+var x [2][3]int
+This declares x to be an array of length 2 whose type is an array of ints of length 3. This sounds pedantic, but there are languages with true matrix support like Fortran or Julia; Go isn’t one of them.
+
+Like most languages, arrays in Go are read and written using bracket syntax:
+
+x[0] = 10
+fmt.Println(x[2])
+You cannot read or write past the end of an array or use a negative index. If you do this with a constant or literal index, it is a compile-time error. An out-of-bounds read or write with a variable index compiles but fails at runtime with a panic (you’ll learn more about panics in “panic and recover”).
+
+Finally, the built-in function len takes in an array and returns its length:
+
+fmt.Println(len(x))
+Earlier I said that arrays in Go are rarely used explicitly. This is because they come with an unusual limitation: Go considers the size of the array to be part of the type of the array. This makes an array that’s declared to be [3]int a different type from an array that’s declared to be [4]int. This also means that you cannot use a variable to specify the size of an array, because types must be resolved at compile time, not at runtime.
+
+What’s more, you can’t use a type conversion to convert arrays of different sizes to identical types. Because you can’t convert arrays of different sizes into each other, you can’t write a function that works with arrays of any size and you can’t assign arrays of different sizes to the same variable.
+
+NOTE
+You’ll learn how arrays work behind the scenes when I discuss memory layout in Chapter 6.
+
+Due to these restrictions, don’t use arrays unless you know the exact length you need ahead of time. For example, some of the cryptographic functions in the standard library return arrays because the sizes of checksums are defined as part of the algorithm. This is the exception, not the rule.
+
+This raises the question: why is such a limited feature in the language? The main reason why arrays exist in Go is to provide the backing store for slices, which are one of the most useful features of Go.
+
+Slices
+Most of the time, when you want a data structure that holds a sequence of values, a slice is what you should use. What makes slices so useful is that you can grow slices as needed. This is because the length of a slice is not part of its type. This removes the the biggest limitations of arrays and allows you to write a single function that processes slices of any size (I’ll cover function writing in Chapter 5). After going over the basics of using slices in Go, I’ll cover the best ways to use them.
+
+Working with slices looks a lot like working with arrays, but there are subtle differences. The first thing to notice is that you don’t specify the size of the slice when we declare it:
+
+var x = []int{10, 20, 30}
+TIP
+Using [...] makes an array. Using [] makes a slice.
+
+This creates a slice of 3 ints using a slice literal. Just like arrays, you can also specify only the indices with values in the slice literal:
+
+var x = []int{1, 5: 4, 6, 10: 100, 15}
+This creates a slice of 12 ints with the following values: [1, 0, 0, 0, 0, 4, 6, 0, 0, 0, 100, 15].
+
+You can simulate multidimensional slices and make a slice of slices:
+
+var x [][]int
+You read and write slices using bracket syntax, and, just like with arrays, you can’t read or write past the end or use a negative index:
+
+x[0] = 10
+fmt.Println(x[2])
+So far, slices have seemed identical to arrays. You start to see the differences between arrays and slices when you look at declaring slices without using a literal:
+
+var x []int
+This creates a slice of ints. Since no value is assigned, x is assigned the zero value for a slice, which is something we haven’t seen before: nil. I’ll talk more about nil in Chapter 6, but it is slightly different from the null that’s found in other languages. In Go, nil is an identifier that represents the lack of a value for some types. Like the untyped numeric constants you saw in the previous chapter, nil has no type, so it can be assigned or compared against values of different types. A nil slice contains nothing.
+
+A slice is the first type you’ve seen that isn’t comparable. It is a compile-time error to use == to see if two slices are identical or != to see if they are different. The only thing you can compare a slice with is nil:
+
+fmt.Println(x == nil) // prints true
+TIP
+The reflect package contains a function called DeepEqual that can compare almost anything, including slices. It’s primarily intended for testing, but you could use it to compare slices if you needed to. You’ll look at it when I discuss reflection in Chapter 16.
+
+len
+Go provides several built-in functions to work with slices. You’ve already seen the built-in len function when looking at arrays. It works for slices, too. Passing a nil slice to len returns 0.
+
+NOTE
+Functions like len are built in to Go because they can do things that can’t be done by the functions that you can write. You’ve already seen that len’s parameter can be any type of array or any type of slice. You’ll soon see that it also works for strings and maps. In Chapter 12, you’ll see it working with channels. Trying to pass a variable of any other type to len is a compile-time error. As you’ll see in Chapter 5, Go doesn’t let developers write a function that accepts any string, array, slice, channel, or map, but rejects other types.
+
+append
+The built-in append function is used to grow slices:
+
+var x []int
+x = append(x, 10) // assign result to the variable that's passed in
+The append function takes at least two parameters, a slice of any type and a value of that type. It returns a slice of the same type, which is assigned to the variable that was passed to append. In this example, we are appending to a nil slice, but you can append to a slice that already has elements:
+
+var x = []int{1, 2, 3}
+x = append(x, 4)
+You can append more than one value at a time:
+
+x = append(x, 5, 6, 7)
+One slice is appended onto another by using the ... operator to expand the source slice into individual values (you’ll learn more about the ... operator in “Variadic Input Parameters and Slices”):
+
+y := []int{20, 30, 40}
+x = append(x, y...)
+It is a compile-time error if you forget to assign the value returned from append. You might be wondering why as it seems a bit repetitive. I will talk about this in greater detail in Chapter 5, but Go is a call by value language. Every time you pass a parameter to a function, Go makes a copy of the value that’s passed in. Passing a slice to the append function actually passes a copy of the slice to the function. The function adds the values to the copy of the slice and returns the copy. You then assign the returned slice back to the variable in the calling function.
+
+Capacity
+As you’ve seen, a slice is a sequence of values. Each element in a slice is assigned to consecutive memory locations, which makes it quick to read or write these values. The length of a slice is the number of consecutive memory locations that have been assigned a value. Every slice also has a capacity, which is the number of consecutive memory locations reserved. This can be larger than the length. Each time you append to a slice, one or more values is added to the end of the slice. Each value added increases the length by one. When the length reaches the capacity, there’s no more room to put values. If you try to add additional values when the length equals the capacity, the append function uses the Go runtime to allocate a new backing array for the slice with a larger capacity. The values in the original backing array are copied to the new one, the new values are added to the end of the new backing array, and the slice is updated to refer to the new backing array. Finally, the updated slice is returned.
+
+THE GO RUNTIME
+Every high-level language relies on a set of libraries to enable programs written in that language to run, and Go is no exception. The Go runtime provides services like memory allocation and garbage collection, concurrency support, networking, and implementations of built-in types and functions.
+
+The Go runtime is compiled into every Go binary. This is different from languages that use a virtual machine, which must be installed separately to allow programs written in those languages to function. Including the runtime in the binary makes it easier to distribute Go programs and avoids worries about compatibility issues between the runtime and the program. The drawback of including the runtime in the binary is that even the simplest Go program produces a binary that’s about 2MB.
+
+When a slice grows via append, it takes time for the Go runtime to allocate new memory and copy the existing data from the old memory to the new. The old memory also needs to be garbage collected. For this reason, the Go runtime usually increases a slice by more than one each time it runs out of capacity. The rule as of Go 1.14 are to double the size of the slice when the capacity is less than 1,024 and then grow by at least 25% afterward.
+
+Just as the built-in len function returns the current length of a slice, the built-in cap function returns the current capacity of a slice. It is used far less frequently than len. Most of the time, cap is used to check if a slice is large enough to hold new data, or if a call to make is needed to create a new slice.
+
+You can also pass an array to the cap function, but cap always returns the same value as len for arrays. Don’t put it in your code, but save this trick for Go trivia night.
+
+Let’s take a look at how adding elements to a slice changes the length and capacity. Run the code in Example 3-1 on The Go Playground or on your machine.
+
+Example 3-1. Understanding capacity
+var x []int
+fmt.Println(x, len(x), cap(x))
+x = append(x, 10)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 20)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 30)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 40)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 50)
+fmt.Println(x, len(x), cap(x))
+When you build and run the code, you’ll see the following output. Notice how and when the capacity increases:
+
+[] 0 0
+[10] 1 1
+[10 20] 2 2
+[10 20 30] 3 4
+[10 20 30 40] 4 4
+[10 20 30 40 50] 5 8
+While it’s nice that slices grow automatically, it’s far more efficient to size them once. If you know how many things you plan to put into a slice, create the slice with the correct initial capacity. You do that with the make function.
+
+make
+You’ve already seen two ways to declare a slice, using a slice literal or the nil zero value. While useful, neither way allows you to create an empty slice that already has a length or capacity specified. That’s the job of the built-in make function. It allows us to specify the type, length, and, optionally, the capacity. Let’s take a look:
+
+x := make([]int, 5)
+This creates an int slice with a length of 5 and a capacity of 5. Since it has a length of 5, x[0] through x[4] are valid elements, and they are all initialized to 0.
+
+One common beginner mistake is to try to populate those initial elements using append:
+
+x := make([]int, 5)
+x = append(x, 10)
+The 10 is placed at the end of the slice, after the zero values in elements 0–4 because append always increases the length of a slice. The value of x is now [0 0 0 0 0 10], with a length of 6 and a capacity of 10 (the capacity was doubled as soon as the sixth element was appended).
+
+You can also specify an initial capacity with make:
+
+x := make([]int, 5, 10)
+This creates an int slice with a length of 5 and a capacity of 10.
+
+You can also create a slice with zero length, but a capacity that’s greater than zero:
+
+x := make([]int, 0, 10)
+In this case, we have a non-nil slice with a length of 0, but a capacity of 10. Since the length is 0, you can’t directly index into it, but you can append values to it:
+
+x := make([]int, 0, 10)
+x = append(x, 5,6,7,8)
+The value of x is now [5 6 7 8], with a length of 4 and a capacity of 10.
+
+WARNING
+Never specify a capacity that’s less than the length! It is a compile-time error to do so with a constant or numeric literal. If you use a variable to specify a capacity that’s smaller than the length, your program will panic at runtime.
+
+Declaring Your Slice
+Now that you’ve seen all these different ways to create slices, how do you choose which slice declaration style to use? The primary goal is to minimize the number of times the slice needs to grow. If it’s possible that the slice won’t need to grow at all, use a var declaration with no assigned value to create a nil slice, as shown in Example 3-2.
+
+Example 3-2. Declaring a slice that might stay nil
+var data []int
+NOTE
+You can create a slice using an empty slice literal:
+
+var x = []int{}
+This creates a slice with zero length and zero capacity. It is confusingly different from a nil slice. Due to implementation reasons, comparing a zero-length slice to nil returns false, while comparing a nil slice to nil returns true. For simplicity, favor nil slices. The only situation where a zero-length slice is useful is when converting a slice to JSON. You’ll look at this more in Chapter 13.
+
+If you have some starting values, or if a slice’s values aren’t going to change, then a slice literal is a good choice (see Example 3-3).
+
+Example 3-3. Declaring a slice with default values
+data := []int{2, 4, 6, 8} // numbers we appreciate
+If you have a good idea of how large your slice needs to be, but don’t know what those values will be when you are writing the program, use make. The question then becomes whether you should specify a nonzero length in the call to make or specify a zero length and a nonzero capacity. There are three possibilities:
+
+If you are using a slice as a buffer (you’ll see this in Chapter 13), then specify a nonzero length.
+
+If you are sure you know the exact size you want, you can specify the length and index into the slice to set the values. This is often done when transforming values in one slice and storing them in a second. The downside to this approach is that if you have the size wrong, you’ll end up with either zero values at the end of the slice or a panic from trying to access elements that don’t exist.
+
+In other situations, use make with a zero length and a specified capacity. This allows you to use append to add items to the slice. If the number of items turns out to be smaller, you won’t have an extraneous zero value at the end. If the number of items is larger, your code will not panic.
+
+The Go community is split between the second and third approaches. I personally prefer using append with a slice initialized to a zero length. It might be slower in some situations, but it is less likely to introduce a bug.
+
+WARNING
+append always increases the length of a slice! If you have specified a slice’s length using make, be sure that you mean to append to it before you do so, or you might end up with a bunch of surprise zero values at the beginning of your slice.
+
+Slicing Slices
+A slice expression creates a slice from a slice. It’s written inside brackets and consists of a starting offset and an ending offset, separated by a colon (:). The starting offset is the first position in the slice that is included in the new slice, and the ending offset is one past the last position to include. If you leave off the starting offset, 0 is assumed. Likewise, if you leave off the ending offset, the end of the slice is substituted. You can see how this works by running the code in Example 3-4 on The Go Playground.
+
+Example 3-4. Slicing slices
+x := []string{"a", "b", "c", "d"}
+y := x[:2]
+z := x[1:]
+d := x[1:3]
+e := x[:]
+fmt.Println("x:", x)
+fmt.Println("y:", y)
+fmt.Println("z:", z)
+fmt.Println("d:", d)
+fmt.Println("e:", e)
+It gives the following output:
+
+x: [a b c d]
+y: [a b]
+z: [b c d]
+d: [b c]
+e: [a b c d]
+Slices share storage sometimes
+When you take a slice from a slice, you are not making a copy of the data. Instead, you now have two variables that are sharing memory. This means that changes to an element in a slice affect all slices that share that element. Let’s see what happens when we change values. You can run the code in Example 3-5 on The Go Playground.
+
+Example 3-5. Slices with overlapping storage
+x := []string{"a", "b", "c", "d"}
+y := x[:2]
+z := x[1:]
+x[1] = "y"
+y[0] = "x"
+z[1] = "z"
+fmt.Println("x:", x)
+fmt.Println("y:", y)
+fmt.Println("z:", z)
+You get the following output:
+
+x: [x y z d]
+y: [x y]
+z: [y z d]
+Changing x modified both y and z, while changes to y and z modified x.
+
+Slicing slices gets extra confusing when combined with append. Try out the code in Example 3-6 on The Go Playground.
+
+Example 3-6. append makes overlapping slices more confusing
+x := []string{"a", "b", "c", "d"}
+y := x[:2]
+fmt.Println(cap(x), cap(y))
+y = append(y, "z")
+fmt.Println("x:", x)
+fmt.Println("y:", y)
+Running this code gives the following output:
+
+4 4
+x: [a b z d]
+y: [a b z]
+What’s going on? Whenever you take a slice from another slice, the subslice’s capacity is set to the capacity of the original slice, minus the starting offset of the subslice within the original slice. This means that any unused capacity in the original slice is also shared with any subslices.
+
+When we make the y slice from x, the length is set to 2, but the capacity is set to 4, the same as x. Since the capacity is 4, appending onto the end of y puts the value in the third position of x.
+
+This behavior creates some very odd scenarios, with multiple slices appending and overwriting each other’s data. See if you can guess what the code in Example 3-7 prints out, then run it on The Go Playground to see if you guessed correctly.
+
+Example 3-7. Even more confusing slices
+x := make([]string, 0, 5)
+x = append(x, "a", "b", "c", "d")
+y := x[:2]
+z := x[2:]
+fmt.Println(cap(x), cap(y), cap(z))
+y = append(y, "i", "j", "k")
+x = append(x, "x")
+z = append(z, "y")
+fmt.Println("x:", x)
+fmt.Println("y:", y)
+fmt.Println("z:", z)
+To avoid complicated slice situations, you should either never use append with a subslice or make sure that append doesn’t cause an overwrite by using a full slice expression. This is a little weird, but it makes clear how much memory is shared between the parent slice and the subslice. The full slice expression includes a third part, which indicates the last position in the parent slice’s capacity that’s available for the subslice. Subtract the starting offset from this number to get the subslice’s capacity. Example 3-8 shows the first four lines from the previous example, modified to use full slice expressions.
+
+Example 3-8. The full slice expression protects against append
+x := make([]string, 0, 5)
+x = append(x, "a", "b", "c", "d")
+y := x[:2:2]
+z := x[2:4:4]
+You can try out this code on The Go Playground. Both y and z have a capacity of 2. Because we limited the capacity of the subslices to their lengths, appending additional elements onto y and z created new slices that didn’t interact with the other slices. After this code runs, x is set to [a b c d x], y is set to [a b i j k], and z is set to [c d y].
+
+WARNING
+Be very careful when taking a slice of a slice! Both slices share the same memory and changes to one are reflected in the other. Avoid modifying slices after they have been sliced or if they were produced by slicing. Use a three-part slice expression to prevent append from sharing capacity between slices.
+
+copy
+If you need to create a slice that’s independent of the original, use the built-in copy function. Let’s take a look at a simple example, which you can run on The Go Playground:
+
+x := []int{1, 2, 3, 4}
+y := make([]int, 4)
+num := copy(y, x)
+fmt.Println(y, num)
+You get the output:
+
+[1 2 3 4] 4
+The copy function takes two parameters. The first is the destination slice and the second is the source slice. It copies as many values as it can from source to destination, limited by whichever slice is smaller, and returns the number of elements copied. The capacity of x and y doesn’t matter; it’s the length that’s important.
+
+You can also copy a subset of a slice. The following code copies the first two elements of a four-element slice into a two-element slice:
+
+x := []int{1, 2, 3, 4}
+y := make([]int, 2)
+num := copy(y, x)
+The variable y is set to [1 2] and num is set to 2.
+
+You could also copy from the middle of the source slice:
+
+x := []int{1, 2, 3, 4}
+y := make([]int, 2)
+copy(y, x[2:])
+We are copying the third and fourth elements in x by taking a slice of the slice. Also note that you don’t assign the output of copy to a variable. If you don’t need the number of elements copied, you don’t need to assign it.
+
+The copy function allows you to copy between two slices that cover overlapping sections of an underlying slice:
+
+x := []int{1, 2, 3, 4}
+num := copy(x[:3], x[1:])
+fmt.Println(x, num)
+In this case, we are copying the last three values in x on top of the first three values of x. This prints out [2 3 4 4] 3.
+
+You can use copy with arrays by taking a slice of the array. You can make the array either the source or the destination of the copy. You can try out the following code on The Go Playground:
+
+x := []int{1, 2, 3, 4}
+d := [4]int{5, 6, 7, 8}
+y := make([]int, 2)
+copy(y, d[:])
+fmt.Println(y)
+copy(d[:], x)
+fmt.Println(d)
+The first call to copy copies the first two values in array d into slice y. The second copies all of the values in slice x into array d. This produces the output:
+
+[5 6]
+[1 2 3 4]
+Converting Arrays to Slices
+Slices aren’t the only thing you can slice. If you have an array, you can take a slice from it using a slice expression. This is a useful way to bridge an array to a function that only takes slices. To convert an entire array into a slice, use the [:] syntax:
+
+xArray := [4]int{5, 6, 7, 8}
+xSlice := xArray[:]
+You can also convert a subset of an array into a slice:
+
+x := [4]int{5, 6, 7, 8}
+y := x[:2]
+z := x[2:]
+
+credit: Learning Go Book

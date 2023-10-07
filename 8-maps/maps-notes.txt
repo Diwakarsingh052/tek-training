@@ -1,0 +1,102 @@
+Maps
+Slices are useful when you have sequential data. Like most languages, Go provides a built-in data type for situations where you want to associate one value to another. The map type is written as map[keyType]valueType. Let’s take a look at a few ways to declare maps. First, you can use a var declaration to create a map variable that’s set to its zero value:
+
+var nilMap map[string]int
+In this case, nilMap is declared to be a map with string keys and int values. The zero value for a map is nil. A nil map has a length of 0. Attempting to read a nil map always returns the zero value for the map’s value type. However, attempting to write to a nil map variable causes a panic.
+
+We can use a := declaration to create a map variable by assigning it a map literal:
+
+totalWins := map[string]int{}
+In this case, we are using an empty map literal. This is not the same as a nil map. It has a length of 0, but you can read and write to a map assigned an empty map literal. Here’s what a nonempty map literal looks like:
+
+teams := map[string][]string {
+    "Orcas": []string{"Fred", "Ralph", "Bijou"},
+    "Lions": []string{"Sarah", "Peter", "Billie"},
+    "Kittens": []string{"Waldo", "Raul", "Ze"},
+}
+A map literal’s body is written as the key, followed by a colon (:), then the value. There’s a comma separating each key-value pair in the map, even on the last line. In this example, the value is a slice of strings. The type of the value in a map can be anything. There are some restrictions on the types of the keys that I’ll discuss in a bit.
+
+If you know how many key-value pairs you intend to put in the map, but don’t know the exact values, you can use make to create a map with a default size:
+
+ages := make(map[int][]string, 10)
+Maps created with make still have a length of 0, and they can grow past the initially specified size.
+
+Maps are like slices in several ways:
+
+Maps automatically grow as you add key-value pairs to them.
+
+If you know how many key-value pairs you plan to insert into a map, you can use make to create a map with a specific initial size.
+
+Passing a map to the len function tells you the number of key-value pairs in a map.
+
+The zero value for a map is nil.
+
+Maps are not comparable. You can check if they are equal to nil, but you cannot check if two maps have identical keys and values using == or differ using !=.
+
+The key for a map can be any comparable type. This means you cannot use a slice or a map as the key for a map.
+
+When should you use a map and when should you use a slice? Slices are for lists of data, especially for data that’s processed sequentially. Maps are useful when you have data that’s organized according to a value that’s not a strictly increasing order.
+
+TIP
+Use a map when the order of elements doesn’t matter. Use a slice when the order of elements is important.
+
+WHAT IS A HASH MAP?
+In computer science, a map is a data structure that associates (or maps) one value to another. Maps can be implemented several ways, each with their own trade-offs. The map that’s built-in to Go is a hash map or hash table. If you aren’t familiar with the concept, chapter 5 in the book “Grokking Algorithms” by Aditya Bhargava describes what a hash table is and why they are so useful.
+
+It’s great that Go includes a hash map implementation as part of the runtime, because building your own is hard to get right. If you’d like to learn more about how Go does it, watch this talk from GopherCon 2016, Inside the Map Implementation.
+
+Go doesn’t require (or even allow) you to define your own hash algorithm or equality definition. Instead, the Go runtime that’s compiled into every Go program has code that implements hash algorithms for all types that are allowed to be keys.
+
+Reading and Writing a Map
+Let’s look at a short program that declares, writes to, and reads from a map. You can run the program in Example 3-10 on The Go Playground.
+
+Example 3-10. Using a map
+totalWins := map[string]int{}
+totalWins["Orcas"] = 1
+totalWins["Lions"] = 2
+fmt.Println(totalWins["Orcas"])
+fmt.Println(totalWins["Kittens"])
+totalWins["Kittens"]++
+fmt.Println(totalWins["Kittens"])
+totalWins["Lions"] = 3
+fmt.Println(totalWins["Lions"])
+When you run this program, you’ll see the following output:
+
+1
+0
+1
+3
+We assign a value to a map key by putting the key within brackets and using = to specify the value, and we read the value assigned to a map key by putting the key within brackets. Note that you cannot use := to assign a value to a map key.
+
+When we try to read the value assigned to a map key that was never set, the map returns the zero value for the map’s value type. In this case, the value type is an int, so we get back a 0. You can use the ++ operator to increment the numeric value for a map key. Because a map returns its zero value by default, this works even when there’s no existing value associated with the key.
+
+The comma ok Idiom
+As you’ve seen, a map returns the zero value if you ask for the value associated with a key that’s not in the map. This is handy when implementing things like the totalWins counter we saw earlier. However, you sometimes do need to find out if a key is in a map. Go provides the comma ok idiom to tell the difference between a key that’s associated with a zero value and a key that’s not in the map:
+
+m := map[string]int{
+    "hello": 5,
+    "world": 0,
+}
+v, ok := m["hello"]
+fmt.Println(v, ok)
+
+v, ok = m["world"]
+fmt.Println(v, ok)
+
+v, ok = m["goodbye"]
+fmt.Println(v, ok)
+Rather than assign the result of a map read to a single variable, with the comma ok idiom you assign the results of a map read to two variables. The first gets the value associated with the key. The second value returned is a bool. It is usually named ok. If ok is true, the key is present in the map. If ok is false, the key is not present. In this example, the code prints out 5 true, 0 true, and 0 false.
+
+NOTE
+The comma ok idiom is used in Go when we want to differentiate between reading a value and getting back the zero value.
+
+Deleting from Maps
+Key-value pairs are removed from a map via the built-in delete function:
+
+m := map[string]int{
+    "hello": 5,
+    "world": 10,
+}
+delete(m, "hello")
+The delete function takes a map and a key and then removes the key-value pair with the specified key. If the key isn’t present in the map or if the map is nil, nothing happens. The delete function doesn’t return a value.
+
