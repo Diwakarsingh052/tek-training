@@ -20,4 +20,5 @@ func inspectSlice(name string, slice []int) {
 	fmt.Printf("name %v Length %d Cap %d \n", name, len(slice), cap(slice))
 	fmt.Println(slice)
 	fmt.Println()
+
 }
