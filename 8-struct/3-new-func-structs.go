@@ -12,6 +12,9 @@ type Conf struct {
 //change the signature to return a pointer to conf
 // if no dataSourceName is provided then log a message and return otherwise assign dataSourceName to db
 
+// NewConf function is created to create instance of the Conf struct
+// any external package can use NewConf to have a db connection
+// not db string is unexported, which means no one from the outside package could change it
 func NewConf(dataSourceName string) *Conf {
 
 	if dataSourceName == "" {

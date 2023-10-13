@@ -9,8 +9,8 @@ type user struct {
 
 type movies struct {
 	movieName string
-	// anonymous field which have no name
-	// anonymous field get there names from the types
+	// anonymous field which has no name
+	// anonymous field gets there names from the types
 	user // embedding
 }
 
