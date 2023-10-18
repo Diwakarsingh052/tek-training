@@ -6,8 +6,8 @@ import (
 
 // model data using structs
 type user struct {
-	Name     string // fields
-	Password string
+	Name     string `json:"name_something"`
+	Password string `json:"-"`
 	age      int
 	marks    []int
 }
