@@ -1,0 +1,8 @@
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+openssl rsa -in private.pem -pubout -out pubkey.pem
+
+go get moduleName  // download a module
+go mod tidy  // remove any unused dependency, it will download dependencies listed in go.mod files,
+             // update the go.mod file for correct usage of module
+go run .
+go build
