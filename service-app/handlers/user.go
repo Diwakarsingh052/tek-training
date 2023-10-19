@@ -2,16 +2,20 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"service-app/middlewares"
 	"service-app/models"
+	"time"
 )
 
-func Signup(c *gin.Context) {
+type handler struct {
+	s *models.Service
+}
+
+func (h *handler) Signup(c *gin.Context) {
 	ctx := c.Request.Context()
 	traceId, ok := ctx.Value(middlewares.TraceIdKey).(string)
 	if !ok {
@@ -37,5 +41,14 @@ func Signup(c *gin.Context) {
 			gin.H{"msg": "please provide Name, Email and Password"})
 		return
 	}
-	fmt.Println(nu)
+	usr, err := h.s.CreateUser(ctx, nu, time.Now())
+	if err != nil {
+		log.Error().Err(err).Str("Trace Id", traceId).Msg("user signup problem")
+
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": "user signup failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, usr)
+
 }

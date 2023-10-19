@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"service-app/models"
 	"time"
 
 	"net/http"
@@ -14,7 +15,7 @@ import (
 // Define a function called API that takes an argument a of type *auth.Auth
 // and returns a pointer to a gin.Engine
 
-func API(a *auth.Auth) *gin.Engine {
+func API(a *auth.Auth, s *models.Service) *gin.Engine {
 
 	// Create a new Gin engine; Gin is a HTTP web framework written in Go
 	r := gin.New()
@@ -22,6 +23,7 @@ func API(a *auth.Auth) *gin.Engine {
 	// Attempt to create new middleware with authentication
 	// Here, *auth.Auth passed as a parameter will be used to set up the middleware
 	m, err := middlewares.NewMid(a)
+	h := handler{s: s}
 
 	// If there is an error in setting up the middleware, panic and stop the application
 	// then log the error message
@@ -36,7 +38,7 @@ func API(a *auth.Auth) *gin.Engine {
 	// Define a route at path "/check"
 	// If it receives a GET request, it will use the m.Authenticate(check) function.
 	r.GET("/check", m.Authenticate(check))
-	r.POST("/signup", Signup)
+	r.POST("/signup", h.Signup)
 
 	// Return the prepared Gin engine
 	return r

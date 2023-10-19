@@ -9,7 +9,9 @@ import (
 	"os"
 	"os/signal"
 	"service-app/auth"
+	"service-app/database"
 	"service-app/handlers"
+	"service-app/models"
 	"time"
 )
 
@@ -49,13 +51,36 @@ func startApp() error {
 		return fmt.Errorf("constructing auth %w", err)
 	}
 
-	// Initialize service
+	// =========================================================================
+	// Start Database
+	log.Info().Msg("main : Started : Initializing db support")
+	db, err := database.Open()
+	if err != nil {
+		return fmt.Errorf("connecting to db %w", err)
+	}
+	pg, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("Failed to get database instance: %w ", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	err = pg.PingContext(ctx)
+	if err != nil {
+		return fmt.Errorf("Database is not connected: %w ", err)
+	}
+
+	// =========================================================================
+	//Initialize Service layer support
+	ms, err := models.NewService(db)
+
+	// Initialize http service
 	api := http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  8000 * time.Second,
 		WriteTimeout: 800 * time.Second,
 		IdleTimeout:  800 * time.Second,
-		Handler:      handlers.API(a),
+		Handler:      handlers.API(a, ms),
 	}
 
 	// channel to store any errors while setting up the service
