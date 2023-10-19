@@ -73,6 +73,13 @@ func startApp() error {
 	// =========================================================================
 	//Initialize Service layer support
 	ms, err := models.NewService(db)
+	if err != nil {
+		return err
+	}
+	err = ms.AutoMigrate()
+	if err != nil {
+		return err
+	}
 
 	// Initialize http service
 	api := http.Server{
