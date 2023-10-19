@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"time"
 
 	"net/http"
 	"service-app/auth"
@@ -34,6 +36,7 @@ func API(a *auth.Auth) *gin.Engine {
 	// Define a route at path "/check"
 	// If it receives a GET request, it will use the m.Authenticate(check) function.
 	r.GET("/check", m.Authenticate(check))
+	r.POST("/signup", Signup)
 
 	// Return the prepared Gin engine
 	return r
@@ -44,5 +47,14 @@ func check(c *gin.Context) {
 	//go func() {
 	//	panic("some kind of panic")
 	//}()
-	c.JSON(http.StatusOK, gin.H{"msg": "statusOk"})
+	time.Sleep(time.Second * 3)
+	select {
+	case <-c.Request.Context().Done():
+		fmt.Println("user not there")
+		return
+	default:
+		c.JSON(http.StatusOK, gin.H{"msg": "statusOk"})
+
+	}
+
 }
