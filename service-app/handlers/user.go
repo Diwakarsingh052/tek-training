@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
@@ -11,12 +12,6 @@ import (
 	"time"
 )
 
-type handler struct {
-	s *models.Service
-	a *auth.Auth
-}
-
-// Define a new handler struct containing two fields: a Service and Auth instance
 type handler struct {
 	s *models.Service
 	a *auth.Auth
