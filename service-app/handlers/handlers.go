@@ -23,7 +23,10 @@ func API(a *auth.Auth, s *models.Service) *gin.Engine {
 	// Attempt to create new middleware with authentication
 	// Here, *auth.Auth passed as a parameter will be used to set up the middleware
 	m, err := middlewares.NewMid(a)
-	h := handler{s: s}
+	h := handler{
+		s: s,
+		a: a,
+	}
 
 	// If there is an error in setting up the middleware, panic and stop the application
 	// then log the error message
@@ -39,6 +42,7 @@ func API(a *auth.Auth, s *models.Service) *gin.Engine {
 	// If it receives a GET request, it will use the m.Authenticate(check) function.
 	r.GET("/check", m.Authenticate(check))
 	r.POST("/signup", h.Signup)
+	r.POST("/login", h.Login)
 
 	// Return the prepared Gin engine
 	return r
