@@ -32,7 +32,7 @@ func NewService(db *gorm.DB) (*Service, error) {
 }
 
 // CreateUser is a method that creates a new user record in the database.
-func (s *Service) CreateUser(ctx context.Context, nu NewUser, now time.Time) (User, error) {
+func (s *Service) CreateUser(ctx context.Context, nu NewUser) (User, error) {
 
 	// We hash the user's password for storage in the database.
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
@@ -45,8 +45,6 @@ func (s *Service) CreateUser(ctx context.Context, nu NewUser, now time.Time) (Us
 		Name:         nu.Name,
 		Email:        nu.Email,
 		PasswordHash: string(hashedPass),
-		DateCreated:  now,
-		DateUpdated:  now,
 	}
 
 	// We attempt to create the new User record in the database.
@@ -60,7 +58,7 @@ func (s *Service) CreateUser(ctx context.Context, nu NewUser, now time.Time) (Us
 }
 
 // Authenticate is a method that checks a user's provided email and password against the database.
-func (s *Service) Authenticate(ctx context.Context, email, password string, now time.Time) (jwt.RegisteredClaims,
+func (s *Service) Authenticate(ctx context.Context, email, password string) (jwt.RegisteredClaims,
 	error) {
 
 	// We attempt to find the User record where the email
@@ -82,8 +80,8 @@ func (s *Service) Authenticate(ctx context.Context, email, password string, now 
 		Issuer:    "service project",
 		Subject:   strconv.FormatUint(uint64(u.ID), 10),
 		Audience:  jwt.ClaimStrings{"students"},
-		ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
-		IssuedAt:  jwt.NewNumericDate(now),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	}
 
 	// And return those claims.

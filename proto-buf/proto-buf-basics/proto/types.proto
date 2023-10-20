@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proto; //proto.v1
+
+option go_package = "proto-buf-basics/proto";
+
+//simple message
+//PascalCase, such as "BlogRequest"
+message BlogRequest {
+//  reserved 1; // uncomment this line to reserve the field numbers
+  int64 blog_id = 1;     //  lower_snake_case, such as "blog_id"
+  string title = 2;
+  string content = 3;
+}

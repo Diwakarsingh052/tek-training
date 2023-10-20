@@ -43,6 +43,8 @@ func API(a *auth.Auth, s *models.Service) *gin.Engine {
 	r.GET("/check", m.Authenticate(check))
 	r.POST("/signup", h.Signup)
 	r.POST("/login", h.Login)
+	r.POST("/add", m.Authenticate(h.AddInventory))
+	r.POST("/view", m.Authenticate(h.ViewInventory))
 
 	// Return the prepared Gin engine
 	return r

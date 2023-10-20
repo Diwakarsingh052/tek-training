@@ -9,7 +9,6 @@ import (
 	"service-app/auth"
 	"service-app/middlewares"
 	"service-app/models"
-	"time"
 )
 
 type handler struct {
@@ -51,7 +50,7 @@ func (h *handler) Signup(c *gin.Context) {
 	}
 
 	// Attempt to create the user
-	usr, err := h.s.CreateUser(ctx, nu, time.Now())
+	usr, err := h.s.CreateUser(ctx, nu)
 	if err != nil {
 		log.Error().Err(err).Str("Trace Id", traceId).Msg("user signup problem")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": "user signup failed"})
@@ -96,7 +95,7 @@ func (h *handler) Login(c *gin.Context) {
 	}
 
 	// Attempt to authenticate the user with the email and password
-	claims, err := h.s.Authenticate(ctx, login.Email, login.Password, time.Now())
+	claims, err := h.s.Authenticate(ctx, login.Email, login.Password)
 	if err != nil {
 		log.Error().Err(err).Str("Trace Id", traceId).Send()
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"msg": "login failed"})
