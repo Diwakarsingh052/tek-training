@@ -9,6 +9,11 @@ import (
 	"server/gen/proto"
 )
 
+// userService struct that contains an unimplemented UserServiceServer defined in proto file
+type userService struct {
+	proto.UnimplementedUserServiceServer
+}
+
 func main() {
 	listener, err := net.Listen("tcp", ":5001")
 	if err != nil {

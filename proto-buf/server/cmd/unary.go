@@ -9,11 +9,6 @@ import (
 	"server/gen/proto"
 )
 
-// userService struct that contains an unimplemented UserServiceServer defined in proto file
-type userService struct {
-	proto.UnimplementedUserServiceServer
-}
-
 // User struct is a representation of user entity
 type User struct {
 	Name  string   `json:"name" validate:"required"`        // Name of the user, a required field
@@ -25,7 +20,10 @@ type User struct {
 // It receives a context and Signup Request and returns a Signup Response or an error
 func (us *userService) Signup(ctx context.Context, req *proto.SignupRequest) (*proto.SignupResponse, error) {
 	nu := req.GetUser() // Fetching the user request sent by the client
+	if nu == nil {
+		return nil, status.Error(codes.Internal, "please provide required fields in correct format")
 
+	}
 	// Parsing the received request to our User struct
 	u := User{
 		Name:  nu.Name,
