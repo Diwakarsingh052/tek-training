@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package proto;
+
+//Sets the Go package where structs generated from this .proto will be
+//placed. If omitted, the Go package will be derived from the following:
+option go_package = "client/gen/proto";
+
+//unary
+message User {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  repeated string roles = 4;
+}
+
+message SignupRequest {
+  User user = 1;
+}
+
+message SignupResponse {
+  string result = 1;
+}
+
+
+service UserService {
+  rpc Signup(SignupRequest) returns (SignupResponse);
+}

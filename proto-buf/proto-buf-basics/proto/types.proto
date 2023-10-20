@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package proto; //proto.v1
-
+//this option tell where the proto files would be generated
 option go_package = "proto-buf-basics/proto";
 
 //simple message
@@ -11,4 +11,20 @@ message BlogRequest {
   int64 blog_id = 1;     //  lower_snake_case, such as "blog_id"
   string title = 2;
   string content = 3;
+}
+
+enum Category {
+  CATEGORY_UNSPECIFIED = 0; // zero value name should be suffixed with "_UNSPECIFIED".
+  CATEGORY_CLOTHING = 1; //should be prefixed with "CATEGORY_ // should be UPPER_SNAKE_CASE
+  CATEGORY_ELECTRONICS = 2;
+  CATEGORY_BOOKS = 3;
+  CATEGORY_HOME_AND_KITCHEN = 4;
+  CATEGORY_SPORTS_AND_OUTDOORS = 5;
+  CATEGORY_BEAUTY_AND_PERSONAL_CARE = 6;
+  CATEGORY_TOYS_AND_GAMES = 7;
+}
+
+message Product {
+  string product_id = 1;
+  Category category = 2;
 }
