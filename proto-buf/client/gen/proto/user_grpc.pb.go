@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	UserService_Signup_FullMethodName     = "/proto.UserService/Signup"
-	UserService_GetPosts_FullMethodName   = "/proto.UserService/GetPosts"
-	UserService_CreatePost_FullMethodName = "/proto.UserService/CreatePost"
+	UserService_Signup_FullMethodName        = "/proto.UserService/Signup"
+	UserService_GetPosts_FullMethodName      = "/proto.UserService/GetPosts"
+	UserService_CreatePost_FullMethodName    = "/proto.UserService/CreatePost"
+	UserService_GreetEveryone_FullMethodName = "/proto.UserService/GreetEveryone"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -33,6 +34,8 @@ type UserServiceClient interface {
 	GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (UserService_GetPostsClient, error)
 	// client streaming
 	CreatePost(ctx context.Context, opts ...grpc.CallOption) (UserService_CreatePostClient, error)
+	// bidirectional streaming
+	GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (UserService_GreetEveryoneClient, error)
 }
 
 type userServiceClient struct {
@@ -118,6 +121,37 @@ func (x *userServiceCreatePostClient) CloseAndRecv() (*CreatePostResponse, error
 	return m, nil
 }
 
+func (c *userServiceClient) GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (UserService_GreetEveryoneClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[2], UserService_GreetEveryone_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userServiceGreetEveryoneClient{stream}
+	return x, nil
+}
+
+type UserService_GreetEveryoneClient interface {
+	Send(*GreetEveryoneRequest) error
+	Recv() (*GreetEveryoneResponse, error)
+	grpc.ClientStream
+}
+
+type userServiceGreetEveryoneClient struct {
+	grpc.ClientStream
+}
+
+func (x *userServiceGreetEveryoneClient) Send(m *GreetEveryoneRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *userServiceGreetEveryoneClient) Recv() (*GreetEveryoneResponse, error) {
+	m := new(GreetEveryoneResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -127,6 +161,8 @@ type UserServiceServer interface {
 	GetPosts(*GetPostsRequest, UserService_GetPostsServer) error
 	// client streaming
 	CreatePost(UserService_CreatePostServer) error
+	// bidirectional streaming
+	GreetEveryone(UserService_GreetEveryoneServer) error
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -142,6 +178,9 @@ func (UnimplementedUserServiceServer) GetPosts(*GetPostsRequest, UserService_Get
 }
 func (UnimplementedUserServiceServer) CreatePost(UserService_CreatePostServer) error {
 	return status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
+}
+func (UnimplementedUserServiceServer) GreetEveryone(UserService_GreetEveryoneServer) error {
+	return status.Errorf(codes.Unimplemented, "method GreetEveryone not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -221,6 +260,32 @@ func (x *userServiceCreatePostServer) Recv() (*CreatePostRequest, error) {
 	return m, nil
 }
 
+func _UserService_GreetEveryone_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserServiceServer).GreetEveryone(&userServiceGreetEveryoneServer{stream})
+}
+
+type UserService_GreetEveryoneServer interface {
+	Send(*GreetEveryoneResponse) error
+	Recv() (*GreetEveryoneRequest, error)
+	grpc.ServerStream
+}
+
+type userServiceGreetEveryoneServer struct {
+	grpc.ServerStream
+}
+
+func (x *userServiceGreetEveryoneServer) Send(m *GreetEveryoneResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *userServiceGreetEveryoneServer) Recv() (*GreetEveryoneRequest, error) {
+	m := new(GreetEveryoneRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +307,12 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "CreatePost",
 			Handler:       _UserService_CreatePost_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "GreetEveryone",
+			Handler:       _UserService_GreetEveryone_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
