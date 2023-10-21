@@ -12,3 +12,5 @@ func SumInt(vs []int) int {
 	return sum
 
 }
+
+//go test -v
