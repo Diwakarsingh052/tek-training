@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"graphql/graph/model"
 )
 
@@ -26,7 +25,7 @@ func (r *mutationResolver) CreateVideo(ctx context.Context, input model.NewVideo
 
 // UpdateVideo is the resolver for the updateVideo field.
 func (r *mutationResolver) UpdateVideo(ctx context.Context, videoID string, input model.UpdateVideoInput) (*model.Video, error) {
-	panic(fmt.Errorf("not implemented: UpdateVideo - updateVideo"))
+	return r.S.UpdateVideo(videoID, input)
 }
 
 // AllVideos is the resolver for the allVideos field.
@@ -36,7 +35,7 @@ func (r *queryResolver) AllVideos(ctx context.Context) ([]*model.Video, error) {
 
 // FindVideosByID is the resolver for the findVideosById field.
 func (r *queryResolver) FindVideosByID(ctx context.Context, videoID string) (*model.Video, error) {
-	panic(fmt.Errorf("not implemented: FindVideosByID - findVideosById"))
+	return r.S.FindVideosByID(videoID)
 }
 
 // Mutation returns MutationResolver implementation.
