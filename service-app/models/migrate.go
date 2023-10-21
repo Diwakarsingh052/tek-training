@@ -1,6 +1,6 @@
 package models
 
-func (s *Service) AutoMigrate() error {
+func (s *Conn) AutoMigrate() error {
 	//if s.db.Migrator().HasTable(&User{}) {
 	//	return nil
 	//}

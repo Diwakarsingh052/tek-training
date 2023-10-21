@@ -15,7 +15,7 @@ import (
 // Define a function called API that takes an argument a of type *auth.Auth
 // and returns a pointer to a gin.Engine
 
-func API(a *auth.Auth, s *models.Service) *gin.Engine {
+func API(a *auth.Auth, c *models.Conn) *gin.Engine {
 
 	// Create a new Gin engine; Gin is a HTTP web framework written in Go
 	r := gin.New()
@@ -23,8 +23,9 @@ func API(a *auth.Auth, s *models.Service) *gin.Engine {
 	// Attempt to create new middleware with authentication
 	// Here, *auth.Auth passed as a parameter will be used to set up the middleware
 	m, err := middlewares.NewMid(a)
+	ms := models.NewStore(c)
 	h := handler{
-		s: s,
+		s: ms,
 		a: a,
 	}
 

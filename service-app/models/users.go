@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-// Service is our main struct, including the database instance for working with data.
-type Service struct {
+// Conn is our main struct, including the database instance for working with data.
+type Conn struct {
 
 	// db is an instance of the SQLite database.
 	db *gorm.DB
 }
 
-// NewService is the constructor for the Service struct.
-func NewService(db *gorm.DB) (*Service, error) {
+// NewService is the constructor for the Conn struct.
+func NewService(db *gorm.DB) (*Conn, error) {
 
 	// We check if the database instance is nil, which would indicate an issue.
 	if db == nil {
@@ -27,12 +27,12 @@ func NewService(db *gorm.DB) (*Service, error) {
 	}
 
 	// We initialize our service with the passed database instance.
-	s := &Service{db: db}
+	s := &Conn{db: db}
 	return s, nil
 }
 
 // CreateUser is a method that creates a new user record in the database.
-func (s *Service) CreateUser(ctx context.Context, nu NewUser) (User, error) {
+func (s *Conn) CreateUser(ctx context.Context, nu NewUser) (User, error) {
 
 	// We hash the user's password for storage in the database.
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
@@ -58,7 +58,7 @@ func (s *Service) CreateUser(ctx context.Context, nu NewUser) (User, error) {
 }
 
 // Authenticate is a method that checks a user's provided email and password against the database.
-func (s *Service) Authenticate(ctx context.Context, email, password string) (jwt.RegisteredClaims,
+func (s *Conn) Authenticate(ctx context.Context, email, password string) (jwt.RegisteredClaims,
 	error) {
 
 	// We attempt to find the User record where the email

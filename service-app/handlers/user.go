@@ -12,7 +12,7 @@ import (
 )
 
 type handler struct {
-	s *models.Service
+	s models.Store
 	a *auth.Auth
 }
 

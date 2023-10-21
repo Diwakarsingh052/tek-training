@@ -5,11 +5,11 @@ import (
 	"errors"
 )
 
-// Define the function CreatInventory, which belongs to the struct 'Service'.
+// Define the function CreatInventory, which belongs to the struct 'Conn'.
 // This function takes in 3 parameters: a context `ctx` of type `Context`, `ni` of type `NewInventory`, and `userId` of type `uint`.
 // This function will return an `Inventory` and an `error`.
 
-func (s *Service) CreatInventory(ctx context.Context, ni NewInventory, userId uint) (Inventory, error) {
+func (s *Conn) CreatInventory(ctx context.Context, ni NewInventory, userId uint) (Inventory, error) {
 	// Create a new 'Inventory' struct named 'inv'.
 	// Initialize it with parameters from the 'NewInventory' struct and the `userId` passed to the function.
 	inv := Inventory{
@@ -34,7 +34,7 @@ func (s *Service) CreatInventory(ctx context.Context, ni NewInventory, userId ui
 	return inv, nil
 }
 
-func (s *Service) ViewInventory(ctx context.Context, userId string) ([]Inventory, float64, error) {
+func (s *Conn) ViewInventory(ctx context.Context, userId string) ([]Inventory, float64, error) {
 	var inv = make([]Inventory, 0, 10)
 	tx := s.db.WithContext(ctx).Where("user_id = ?", userId)
 	err := tx.Find(&inv).Error

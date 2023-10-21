@@ -71,7 +71,7 @@ func startApp() error {
 	}
 
 	// =========================================================================
-	//Initialize Service layer support
+	//Initialize Conn layer support
 	ms, err := models.NewService(db)
 	if err != nil {
 		return err
