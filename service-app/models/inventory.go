@@ -54,6 +54,9 @@ func CalculateTotalCost(inventories []Inventory, category string) (float64, erro
 	if category == "" {
 		return 0, errors.New("category doesn't exist")
 	}
+	if inventories == nil {
+		return 0, errors.New("inventory not found")
+	}
 	// Compute the total cost
 	var totalCost float64
 	for _, inventory := range inventories {
