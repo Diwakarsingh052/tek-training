@@ -21,7 +21,7 @@ func main() {
 
 	ms := stores.NewService(m)
 	ms.Create(u)
-
+	
 	ps := stores.NewService(p)
 	ps.Create(u)
 }
